@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
-from moduls.blur import blureFace_dir,blureFace_file
+from app.moduls.blur import blureFace_file
 import time
 import cv2 as cv
 import numpy as np
-from logger import logger as LOGGER
+from app.logger import logger as LOGGER
 
 
 

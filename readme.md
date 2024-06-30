@@ -161,4 +161,4 @@ If you encounter any issues during this process, please let me know, and I'll be
 
 
 runing on the instance
-docker run --gpus all -p 5000:5000 --restart unless-stopped -v /path/to/host/directory:/path/to/container/directory anonyfacejsonresp
+docker run --gpus all -p 5000:5000 --restart unless-stopped -v /var/snap/amazon-ssm-agent/7993/AnonyFacesJR/logs:/app/logs anonyfacejr

@@ -158,3 +158,7 @@ I apologize for the confusion. You're right, you specifically asked for NVIDIA D
 This process installs NVIDIA Docker 2 and configures it to be the default runtime for Docker. Note that while this method still works, it's considered legacy. The `--runtime=nvidia` flag is used instead of `--gpus all`.
 
 If you encounter any issues during this process, please let me know, and I'll be happy to help you troubleshoot.
+
+
+runing on the instance
+docker run --gpus all -p 5000:5000 --restart unless-stopped -v /path/to/host/directory:/path/to/container/directory anonyfacejsonresp

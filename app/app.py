@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
-from app.moduls import blureFace_dir,blureFace_file,blureFace_file_ret_json
+from moduls.blur import blureFace_dir,blureFace_file
 import time
 import cv2 as cv
 import numpy as np
-from app.logger import logger as LOGGER
+from logger import logger as LOGGER
 
 
 
@@ -26,7 +26,7 @@ def blur_file_bytes():
     np_images=cv.imdecode(np.frombuffer(byte_image, np.uint8), cv.IMREAD_COLOR)
     LOGGER.info(f'finished encoding image in - {time.time()-t}')
     t=time.time()
-    detections= blureFace_file_ret_json(np_images,fd_threshold,LOGGER)  # Pass fd_threshold and logger
+    detections= blureFace_file(np_images,fd_threshold,LOGGER)  # Pass fd_threshold and logger
     LOGGER.info(f'finished detection in {time.time()-t}')
     if detections is not None:
       LOGGER.info(f'request handled in {time.time()-st}')
@@ -52,39 +52,68 @@ def blur_file_bytes():
       return jsonify({'error': 'Internal server error'}), 500
 
 
+#To be used when integrating with S3
 
-@app.route('/blur-dir', methods=['POST'])
-def blur():
-    # LOGGER = create_logger("blur_log")
-    LOGGER.info(f"blur-dir-path request recived")
-    if request.is_json:
-        fd_threshold=request.data["df_threshold"]
-        data = request.get_json()
-        LOGGER.info(f'Received data: {data}')
-        car_directory = data.get('car directory')
-        LOGGER.info(f"{car_directory} is  being sent or blurring")
-        blurred_images = blureFace_dir(car_directory,fd_threshold,LOGGER)
-        LOGGER.info(f"{car_directory} has done blurring proccess")
-        #blur_status options - blurred, no_detections, 
-        return blurred_images.tolist(),200
+# @app.route('/blur-dir', methods=['POST'])
+# def blur():
+#     # LOGGER = create_logger("blur_log")
+#     LOGGER.info(f"blur-dir-path request recived")
+#     if request.is_json:
+#         fd_threshold=request.data["df_threshold"]
+#         data = request.get_json()
+#         LOGGER.info(f'Received data: {data}')
+#         car_directory = data.get('car directory')
+#         LOGGER.info(f"{car_directory} is  being sent or blurring")
+#         blurred_images = blureFace_dir(car_directory,fd_threshold,LOGGER)
+#         LOGGER.info(f"{car_directory} has done blurring proccess")
+#         #blur_status options - blurred, no_detections, 
+#         return blurred_images.tolist(),200
 
 
 
 @app.route('/blur-test-local')
 def blur_test_local():
+    st=time.time()
+    try:
         # LOGGER = create_logger("blur_log")
-        images=[]
-        LOGGER.info(f"blurring test request recived")
-        LOGGER.info(f'blur request recived')
-        car_directory = "images_to_blur"
-        images=[f'{car_directory}/1.jpg',f'{car_directory}/2.jpg']
+        LOGGER.info(f"blur-file request received")
+        # Access request data
+        t=time.time()
+        images=[f'app/images_to_blur/1.jpg',f'app/images_to_blur/1.jpg']
         for img in images:
-             images.append(cv.imread(f'{car_directory}/{img}'))
-        LOGGER.info(f"proccess started")
-        blurred_images = blureFace_file(images,0.4,LOGGER)
-        LOGGER.info(f"proccess ended")
-        LOGGER.info(f'detected faces in {len(blurred_images)} images' )
-        return  f'blur proccess ended blurred {len(blurred_images)} images'
+            with open(img, 'rb') as image_file:
+                LOGGER.info(f'opned image :{img}')
+                bytes_image=image_file.read()
+                fd_threshold=0.4
+                np_image=cv.imdecode(np.frombuffer(bytes_image, np.uint8), cv.IMREAD_COLOR)
+                LOGGER.info(f'finished encoding image in - {time.time()-t}')
+                t=time.time()
+                detections= blureFace_file(np_image,fd_threshold,LOGGER)  # Pass fd_threshold and logger
+                LOGGER.info(f'finished detection in {time.time()-t}')
+                if detections is not None:
+                    LOGGER.info(f'request handled in {time.time()-st}')
+                    LOGGER.info(f'detections found:{detections}')
+                    return jsonify(f'detections found, first detection is:{detections["face_1"]}'), 200  # Return JSON with processed images
+                
+                else:
+                    LOGGER.info('no faces detected')
+                    LOGGER.info(f'request handled in {time.time()-st}')
+                    return '', 204  # No data to process
+    
+    
+    except KeyError as e:
+        LOGGER.error(f"Missing required form data: {e}")
+        return jsonify({'error': 'Missing required form data'}), 400
+    except ValueError as e:
+        LOGGER.error(f"Invalid fd_threshold value: {e}")
+        return jsonify({'error': 'Invalid fd_threshold value'}), 400
+    except cv.error as e:
+        LOGGER.error(f"Error decoding image: {e}")
+        return jsonify({'error': 'Error decoding image'}), 400
+    except Exception as e:
+        LOGGER.error(f"Unexpected error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 
 
 

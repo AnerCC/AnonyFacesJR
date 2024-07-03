@@ -146,7 +146,7 @@ I apologize for the confusion. You're right, you specifically asked for NVIDIA D
 
 11. Run TensorFlow with GPU support:
     ```
-    sudo docker run --runtime=nvidia -it tensorflow/tensorflow:2.16.1-gpu
+    sudo docker run --gpus all -it tensorflow/tensorflow:2.16.1-gpu
     ```
 
 12. Inside the TensorFlow container, you can verify GPU access:
@@ -155,9 +155,6 @@ I apologize for the confusion. You're right, you specifically asked for NVIDIA D
     print(tf.config.list_physical_devices('GPU'))
     ```
 
-This process installs NVIDIA Docker 2 and configures it to be the default runtime for Docker. Note that while this method still works, it's considered legacy. The `--runtime=nvidia` flag is used instead of `--gpus all`.
-
-If you encounter any issues during this process, please let me know, and I'll be happy to help you troubleshoot.
 
 
 runing on the instance
